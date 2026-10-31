@@ -1,0 +1,16 @@
+# Keep the build context small and free of secrets
+.git
+.gitignore
+.gitattributes
+Jenkinsfile
+README.md
+docs/
+reports/
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+.venv/
+venv/
+*.pem
+*.key
+.env

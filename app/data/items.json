@@ -1,0 +1,8 @@
+[
+  {"id": 1, "name": "Rack server 1U", "category": "compute", "quantity": 4, "location": "DC-A / R12"},
+  {"id": 2, "name": "Top-of-rack switch 48p", "category": "network", "quantity": 2, "location": "DC-A / R12"},
+  {"id": 3, "name": "SFP28 transceiver", "category": "network", "quantity": 36, "location": "Store / B3"},
+  {"id": 4, "name": "NVMe drive 3.84 TB", "category": "storage", "quantity": 9, "location": "Store / B1"},
+  {"id": 5, "name": "PDU 32A", "category": "power", "quantity": 1, "location": "DC-B / R04"},
+  {"id": 6, "name": "Cat6a patch cable 2 m", "category": "network", "quantity": 120, "location": "Store / C2"}
+]
