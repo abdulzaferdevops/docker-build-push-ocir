@@ -23,7 +23,7 @@ FROM ${PYTHON_IMAGE} AS build
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 PIP_NO_CACHE_DIR=1
 RUN python -m venv /opt/venv
 COPY app/requirements.txt /tmp/requirements.txt
-RUN /opt/venv/bin/pip install -r /tmp/requirements.txt
+RUN /opt/venv/bin/pip install -r /tmp/requirements.txt && /opt/venv/bin/python -m pip uninstall -y pip setuptools wheel
 
 # ---------- runtime ----------
 FROM ${PYTHON_IMAGE} AS runtime
@@ -47,7 +47,7 @@ ENV PATH="/opt/venv/bin:${PATH}" \
     PORT=8000
 
 # Unprivileged user with a fixed UID (predictable for Podman/OKE security contexts)
-RUN groupadd --system --gid 10001 app \
+RUN python -m pip uninstall -y pip setuptools wheel && groupadd --system --gid 10001 app \
  && useradd --system --uid 10001 --gid app --no-create-home --shell /usr/sbin/nologin app
 
 COPY --from=build /opt/venv /opt/venv
