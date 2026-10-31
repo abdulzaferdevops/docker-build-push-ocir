@@ -1,7 +1,7 @@
 // Lab 4: docker-build-push-ocir
 // GitHub push -> Jenkins -> tests inside the image build -> runtime image tagged by commit
 // -> container smoke test -> Trivy vulnerability gate -> push to OCI Container Registry
-// -> record the immutable digest for Lab 5 to deploy.
+// -> record the immutable digest -> trigger Lab 5 (app-server-podman-deploy) with that digest.
 //
 // One-time Jenkins setup (see README):
 //   - Credential 'ocir-push' (username + auth token)
@@ -155,12 +155,23 @@ pipeline {
             printf '{"image":"%s","tag":"%s","release":"%s","digest":"%s","commit":"%s"}\\n' \
               "$IMAGE" "$SHORT_SHA" "$RELEASE" "$DIGEST" "${GIT_COMMIT:-unknown}" > image.json
             cat image.json
+            printf '%s' "$DIGEST" > digest.txt
           '''
         }
         script {
+          env.PUSHED_DIGEST = readFile('digest.txt').trim()
           currentBuild.description = "pushed ${env.SHORT_SHA} (release ${env.RELEASE})"
         }
         archiveArtifacts artifacts: 'image.json', fingerprint: true
+      }
+    }
+    stage('Deploy (Lab 5)') {
+      steps {
+        // Same bytes that were tested and scanned above, identified by digest.
+        // wait + propagate: this build fails if the deploy (and its automatic rollback) fails.
+        build job: 'app-server-podman-deploy', wait: true, propagate: true,
+              parameters: [string(name: 'IMAGE_DIGEST', value: env.PUSHED_DIGEST),
+                           string(name: 'ACTION', value: 'deploy')]
       }
     }
   }
@@ -173,7 +184,7 @@ pipeline {
         docker rmi -f "lab4-flask-api:test-$BUILD_NUMBER" "lab4-flask-api:$RELEASE" \
           "$IMAGE:$SHORT_SHA" "$IMAGE:$RELEASE" >/dev/null 2>&1 || true
         docker image prune -f --filter "until=24h" >/dev/null 2>&1 || true
-        rm -f smoke.json
+        rm -f smoke.json digest.txt
       '''
     }
   }
