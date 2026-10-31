@@ -70,6 +70,21 @@ docker run --rm -p 8000:8000 --read-only --tmpfs /tmp --cap-drop ALL inventory-a
 curl http://localhost:8000/health
 ```
 
+## Results
+
+![Jenkins build history](docs/pipeline.png)
+
+| Build | Change | Outcome |
+|:--|:--|:--|
+| #2 | First image | Pushed; gate set to CRITICAL only, scan reported **4 HIGH** in Python packaging tools |
+| #3 | Gate raised to block fixable **HIGH** | **Push blocked**: `jaraco.context` (path traversal) and `wheel` (code execution) |
+| #4 | Removed `pip`, `setuptools` and `wheel` from the runtime image (not used at runtime) | **0 HIGH / 0 CRITICAL**, image **230 MB → 194 MB**, pushed by digest |
+
+The findings were not in the application: they came from packaging tools shipped with the base image and
+the virtualenv. Removing what the service doesn't need fixed them and made the image smaller.
+
+![Image in OCI Container Registry](docs/registry.png)
+
 ## Licence
 
 MIT
