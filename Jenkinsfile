@@ -122,12 +122,12 @@ pipeline {
             "$TRIVY_IMAGE" image --quiet --severity HIGH,CRITICAL --ignore-unfixed \
             --format table "$LOCAL" | tee reports/trivy.txt
 
-          # Gate: fail on CRITICAL vulnerabilities that already have a fix available
+          # Gate: fail on HIGH or CRITICAL vulnerabilities that already have a fix available
           docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v lab4-trivy-cache:/root/.cache \
-            "$TRIVY_IMAGE" image --quiet --severity CRITICAL --ignore-unfixed --exit-code 1 \
+            "$TRIVY_IMAGE" image --quiet --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 \
             --format table "$LOCAL" >/dev/null \
-            && echo "vulnerability gate passed: no fixable CRITICAL findings" \
-            || { echo "vulnerability gate FAILED: fixable CRITICAL findings (see report above)"; exit 1; }
+            && echo "vulnerability gate passed: no fixable HIGH or CRITICAL findings" \
+            || { echo "vulnerability gate FAILED: fixable HIGH or CRITICAL findings (see report above)"; exit 1; }
         '''
       }
     }
